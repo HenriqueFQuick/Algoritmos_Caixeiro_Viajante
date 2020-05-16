@@ -10,18 +10,14 @@ double distanciaMinima = 999999999.0;
 void branchAndBound(int n, int w[], int x[], int y[], bool used[], int k, double soma, int anterior){
     int i;
     if(k == n){
-        //cout << "posicao: " << "0" << " anterior: "<< anterior << endl;
-        //cout << x[anterior] << " " << x[0] << endl;
-        //cout << y[anterior] << " " << y[0] << endl;
-        //cout << sqrt(pow(x[anterior]-x[0],2)+pow(y[anterior]-y[0],2)) << endl;
         soma += sqrt(pow(x[anterior]-x[0],2)+pow(y[anterior]-y[0],2));
-        //cout << soma << " < " << distanciaMinima << " = " << (soma < distanciaMinima) << endl;
         if(soma < distanciaMinima){
             distanciaMinima = soma;
             for(i = 0; i< n; i++){
                 vetor[i] = w[i] + 1;
             }
         }
+        used[anterior] = false;
     } else{
         if(soma > distanciaMinima)
             return;
@@ -29,12 +25,9 @@ void branchAndBound(int n, int w[], int x[], int y[], bool used[], int k, double
             if(!used[i]){
                 used[i] = true;
                 w[k] = i;
-                //cout << "i: " << i << " anterior: "<< anterior << endl;
-                //cout << x[i] << " " << x[anterior] << endl;
-                //cout << y[i] << " " << y[anterior] << endl;
-                //cout << sqrt(pow(x[i]-x[anterior],2)+pow(y[i]-y[anterior],2)) << endl;
                 soma += sqrt(pow(x[i]-x[anterior],2)+pow(y[i]-y[anterior],2));
                 branchAndBound(n, w, x, y, used, k+1, soma, i);
+                soma -= sqrt(pow(x[i]-x[anterior],2)+pow(y[i]-y[anterior],2));
                 used[i] = false;
             }
         }

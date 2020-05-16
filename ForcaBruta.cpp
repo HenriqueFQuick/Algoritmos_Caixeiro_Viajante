@@ -17,6 +17,7 @@ void forcaBruta(int n, int w[], int x[], int y[], bool used[], int k, double som
                 vetor[i] = w[i] + 1;
             }
         }
+        used[anterior] = false;
     } else{
         for(i = 0; i < n; i++){
             if(!used[i]){
@@ -24,6 +25,7 @@ void forcaBruta(int n, int w[], int x[], int y[], bool used[], int k, double som
                 w[k] = i;
                 soma += sqrt(pow(x[i]-x[anterior],2)+pow(y[i]-y[anterior],2));
                 forcaBruta(n, w, x, y, used, k+1, soma, i);
+                soma -= sqrt(pow(x[i]-x[anterior],2)+pow(y[i]-y[anterior],2));
                 used[i] = false;
             }
         }
