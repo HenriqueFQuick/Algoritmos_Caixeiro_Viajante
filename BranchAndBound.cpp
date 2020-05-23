@@ -34,7 +34,7 @@ void branchAndBound(int n, int w[], int x[], int y[], bool used[], int k, double
     }
 }
 
-void completaMatriz(int tam, int* y, int* x){
+void completaVetores(int tam, int* y, int* x){
     int aux = 0;
     while(aux < tam){
         cin >> x[aux];
@@ -52,7 +52,7 @@ int main(){
     int* w = new int[n];
     int* x = new int[n];
     int* y = new int[n];
-    completaMatriz(n,x,y);
+    completaVetores(n,x,y);
     auto inicio = std::chrono::high_resolution_clock::now();
 
     double soma = 0;
