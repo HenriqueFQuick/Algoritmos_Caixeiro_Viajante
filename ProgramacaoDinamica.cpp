@@ -1,76 +1,23 @@
 #include <iostream>
 #include <math.h>
 #include<chrono>
+#include <limits.h>
+#include <vector>
 
 using namespace std;
+#define MAXTAM 100
 
 int* vetor;
 double distanciaMinima = 999999999.0;
 
-void forcaBruta(int n, int w[], int x[], int y[], bool used[], int k, double soma, int anterior){
-    int i;
-    if(k == n){
-        soma += sqrt(pow(x[anterior]-x[0],2)+pow(y[anterior]-y[0],2));
-        if(soma < distanciaMinima){
-            distanciaMinima = soma;
-            for(i = 0; i< n; i++){
-                vetor[i] = w[i] + 1;
-            }
-        }
-    } else{
-        for(i = 0; i < n; i++){
-            if(!used[i]){
-                used[i] = true;
-                w[k] = i;
-                soma += sqrt(pow(x[i]-x[anterior],2)+pow(y[i]-y[anterior],2));
-                forcaBruta(n, w, x, y, used, k+1, soma, i);
-                used[i] = false;
-            }
-        }
-    }
-}
+double distanceBetweenTwoPoints(int x1, int x2, int y1, int y2){
+	double distance = 0.0, difference1 = 0.0, difference2 = 0.0;
+	
+	difference1 = x2-x1;
+	difference2 = y2-y1;
 
-void metodo(int n, double** cost, double** best, int* x, int* y){
-    double t;
-    for(int i = 0; i < n; i++){
-        for(int j = i+1; j < n; j++){
-            cost[i][j] = 99999;
-        }
-    }
-    for(int i = 0; i < n; i++) cost[i][i] = 0;
-
-    for(int j = 0; j < n; j++){
-        for(int i = 0; i < n-j; i++){
-            for(int k = i+1; k <= i+j; k++){
-                //cout << "j: " << j << " i: " << i << " k: " << k <<endl;
-                //cout << cost[i][k-1] << "  " << cost[k][i+j] << " "<< sqrt(pow(x[i]-x[k],2)+pow(y[i]-y[k],2)) << endl;
-                t = cost[i][k-1] + cost[k][i+j] + sqrt(pow(x[i]-x[k],2)+pow(y[i]-y[k],2));
-                if(t < cost[i][i+j]){
-                    cost[i][i+j] = t;
-                    best[i][i+j] = k;
-                }
-            }
-        }
-    }
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
-            cout << best[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
-
-double** criaMatriz(int n, double** matriz){
-    matriz = new double*[n];
-    for(int i = 0; i < n; i++){
-        matriz[i] = new double[n];
-    }
-    for(int i = 0; i < n; i++){           
-        for(int j = 0; j < n; j++){
-            matriz[i][j] = 0;
-        }
-    }
-    return matriz;
+	distance = sqrt(pow(difference1,2) + pow(difference2,2)); 	
+	return distance;
 }
 
 void completaMatriz(int tam, int* y, int* x){
@@ -82,24 +29,81 @@ void completaMatriz(int tam, int* y, int* x){
     }
 }
 
+double** adjacenciesMatrixCreate(int n){
+	int i = 0, j = 0, k, l;
+	double** matrix = new double*[MAXTAM];
+	int* x = new int[n];
+	int* y = new int[n];
+	
+	completaMatriz(n, y, x);
+	
+	for(i; i< MAXTAM; i++){
+		matrix[i] = new double[MAXTAM];
+	}
+	for(k = 0; k < n; k++){
+		for(l = 0; l < n; l++){
+			matrix[k][l] = distanceBetweenTwoPoints(x[k], x[l], y[k], y[l]);
+		}
+	}
+	return matrix;
+}
+
+double dynamicProgramming(int n, double** matrixCities, int k, int anterior, vector<vector<double>>& minimalDistancies, int* w, int aux){
+    if(anterior == ((1 << (n)) - 1)){
+        return matrixCities[k][0];
+    }
+         
+
+    if(minimalDistancies[k][anterior] != INT_MAX){
+        return minimalDistancies[k][anterior];
+    }
+
+    for(int i = 0; i < (n); ++i){
+        if(i == k || (anterior & (1 << i))){
+            continue;
+        }
+        
+        double distance = matrixCities[k][i] + dynamicProgramming(n, matrixCities, i, anterior | (1 << i), minimalDistancies, w, aux);
+        if(distance < minimalDistancies[k][anterior]){
+            minimalDistancies[k][anterior] = distance;
+        }
+    }
+
+    return minimalDistancies[k][anterior];
+
+}
+
+void printMatrix(double** matrix, int n){
+	int i, j;
+	for(i = 0; i < n; i++){
+		for(j = 0; j < n; j++){
+			cout << matrix[i][j] << " | ";
+		}
+		cout << "\n";
+	}
+}
+
 int main(){
+    int aux = 0;
     int n;
     cin >> n;
     vetor = new int[n];
-    double** cost;
-    double** best;
-    int* x = new int[n];
-    int* y = new int[n];
-    completaMatriz(n,x,y);
+    for(int i = 0; i < n; i++)
+        vetor[i] = 0;
+    int* w = new int[n];
+
+    double** matrixCities = adjacenciesMatrixCreate(n);
+    //printMatrix(matrixCities, n);
     auto inicio = std::chrono::high_resolution_clock::now();
-    cost = criaMatriz(n, cost);
-    best = criaMatriz(n, best);
 
-    metodo(n, cost, best, x, y);
+    vector<vector<double>> minimalDistancies(n, vector<double>((1 << (n)) - 1, INT_MAX));
+    
+    distanciaMinima = dynamicProgramming(n,matrixCities, 0, 1, minimalDistancies, w, aux);
 
-    cout << (cost[0][n-1]+sqrt(pow(x[0]-x[n-1],2)+pow(y[0]-y[n-1],2))) << endl;
+    cout << distanciaMinima << endl;
+
     auto resultado = std::chrono::high_resolution_clock::now()-inicio;
     long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(resultado).count();
-    cout << endl << microseconds << endl;
+    cout << microseconds << endl;
     return 0;
 }
